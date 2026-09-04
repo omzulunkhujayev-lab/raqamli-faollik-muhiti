@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: rfm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rfm
+      POSTGRES_PASSWORD: rfm_parol
+      POSTGRES_DB: rfm
+    ports:
+      - "5432:5432"
+    volumes:
+      - rfm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rfm -d rfm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rfm_pgdata:

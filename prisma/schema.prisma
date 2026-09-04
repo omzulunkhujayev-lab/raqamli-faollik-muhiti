@@ -1,0 +1,341 @@
+// Raqamli faollik muhiti — ma'lumotlar bazasi sxemasi
+// SQLite: enum va massivlar qo'llab-quvvatlanmaydi — ular JSON matn yoki
+// hujjatlashtirilgan qiymatli String sifatida saqlanadi.
+
+generator client {
+  provider      = "prisma-client-js"
+  // Vercel (serverless Linux) uchun ham engine binary'si
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // ishlash vaqti (serverless — pooled ulanish)
+  directUrl = env("DIRECT_URL")   // migratsiyalar uchun to'g'ridan-to'g'ri ulanish
+}
+
+// Foydalanuvchi. role: talaba | oqituvchi | tyutor | admin
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  role            String    @default("talaba")
+  fio             String
+  muassasa        String?
+  yonalish        String?
+  kurs            Int?
+  jins            String? // erkak | ayol
+  yashashSharoiti String? // yotoqxona | ijara | oila
+  tibbiyGuruh     String? // asosiy | tayyorlov | maxsus
+  consentAt       DateTime? // ishtirokka rozilik vaqti (ixtiyoriylik sharti)
+  createdAt       DateTime  @default(now())
+
+  groupId String?
+  group   Group?  @relation("GroupMembers", fields: [groupId], references: [id])
+
+  tutoredGroups    Group[]           @relation("GroupTutor")
+  dailyEntries     DailyEntry[]
+  weeklyGoals      WeeklyGoal[]
+  assessments      Assessment[]
+  observationCards ObservationCard[]
+  favorites        Favorite[]
+  userBadges       UserBadge[]
+  weeklyReflections WeeklyReflection[]
+  lessonPlans      LessonPlan[]
+  topicProgresses  TopicProgress[]
+  forumPosts       ForumPost[]
+  surveyResponses  SurveyResponse[]
+  testResults      TestResult[]
+  reflectiveEssays ReflectiveEssay[]
+  faolHaftaKunlar  FaolHaftaKun[]
+}
+
+// Guruh. tur: tajriba | nazorat
+model Group {
+  id       String  @id @default(cuid())
+  nomi     String
+  kurs     Int
+  tur      String  @default("tajriba")
+  tyutorId String?
+  tyutor   User?   @relation("GroupTutor", fields: [tyutorId], references: [id])
+
+  members    User[]       @relation("GroupMembers")
+  schedules  Schedule[]
+  activityGaps ActivityGap[]
+}
+
+// Kunlik faollik yozuvi
+model DailyEntry {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sana           DateTime // kun (00:00)
+  qadam          Int      @default(0)
+  faolDaqiqa     Int      @default(0)
+  engUzunOtirish Int      @default(0) // daqiqa
+  pauzaSoni      Int      @default(0)
+  uyquSoat       Float    @default(0)
+  ekranSoat      Float    @default(0)
+  kayfiyatBall   Int      @default(3) // 1..5
+  refleksiyaMatn String?
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, sana])
+}
+
+// Haftalik maqsad
+model WeeklyGoal {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hafta       String // ISO hafta, masalan "2026-W36"
+  maqsadTuri  String // qadam | faolDaqiqa | pauza | otirish
+  joriyQiymat Float
+  maqsadQiymat Float
+  bajarildi   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, hafta, maqsadTuri])
+}
+
+// Haftalik tahlil (refleksiya) — hafta yakunidagi majburiy forma javoblari
+model WeeklyReflection {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hafta            String
+  engFaolKun       String? // Qaysi kun eng faol bo'ldi va nima uchun?
+  engPastKun       String? // Qaysi kun eng past ko'rsatkich, sababi?
+  uzunOtirishVaqt  String? // Uzluksiz o'tirish eng uzun bo'lgan vaqt oralig'i
+  keyingiMaqsad    String? // Kelgusi haftaga bitta aniq maqsad
+  createdAt        DateTime @default(now())
+
+  @@unique([userId, hafta])
+}
+
+// Dars jadvali (mashgulotSoatlari va tanaffuslar — JSON massiv)
+model Schedule {
+  id                String @id @default(cuid())
+  groupId           String
+  group             Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  kun               String // Dushanba..Yakshanba
+  mashgulotSoatlari String // JSON: [{"nomi":"Pedagogika","boshlanish":"08:30","tugash":"09:50"}]
+  tanaffuslar       String // JSON: [{"boshlanish":"09:50","tugash":"10:00"}]
+
+  @@unique([groupId, kun])
+}
+
+// Faollik uzilishi (uzluksiz o'tirish 60 daq.dan oshgan oraliq)
+model ActivityGap {
+  id                 String @id @default(cuid())
+  groupId            String
+  group              Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  kun                String
+  boshlanish         String
+  tugash             String
+  davomiylikDaq      Int
+  taklifEtilganYechim String?
+
+  @@unique([groupId, kun, boshlanish])
+}
+
+// Faollik kartochkasi. turi: gigiyenik | kognitiv | kasbiy
+model Card {
+  id                   String  @id @default(cuid())
+  raqam                Int     @unique
+  nomi                 String
+  turi                 String
+  davomiylik           String // masalan "2-3 daq."
+  joyJihoz             String
+  joyTuri              String // urindan_turmasdan | auditoriya | tanaffus_ochiq_havo
+  algoritm             String // JSON massiv: ["1-qadam...", ...]
+  metodikEslatma       String
+  mosFanlar            String // JSON massiv
+  moslashtirilganVariant String? // sog'liq cheklovi bo'lganlar uchun
+
+  favorites Favorite[]
+}
+
+// Sevimli kartochkalar
+model Favorite {
+  id     String @id @default(cuid())
+  userId String
+  cardId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId])
+}
+
+// O'quv moduli mavzusi
+model CourseTopic {
+  id          String @id @default(cuid())
+  tartib      Int    @unique
+  nomi        String
+  maruzaSoat  Int    @default(0)
+  amaliySoat  Int    @default(0)
+  mustaqilSoat Int   @default(0)
+  kontent     String? // JSON: video, taqdimot, test va h.k.
+
+  progresses TopicProgress[]
+  forumPosts ForumPost[]
+}
+
+// Mavzu bo'yicha talaba progressi
+model TopicProgress {
+  id                   String   @id @default(cuid())
+  userId               String
+  topicId              String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic                CourseTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  korilgan             Boolean  @default(false) // ma'ruza ko'rildi
+  testBall             Int      @default(0)
+  testMax              Int      @default(0)
+  topshiriqMatn        String?
+  topshiriqTopshirildi Boolean  @default(false)
+  bajarildi            Boolean  @default(false)
+  yangilangan          DateTime @updatedAt
+
+  @@unique([userId, topicId])
+}
+
+// Muhokama forumi posti
+model ForumPost {
+  id        String   @id @default(cuid())
+  topicId   String
+  userId    String
+  topic     CourseTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matn      String
+  createdAt DateTime @default(now())
+}
+
+// Anketa javoblari (anonim tahlil uchun)
+model SurveyResponse {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nuqta     String // kirish | oraliq | yakuniy
+  javoblar  String // JSON
+  createdAt DateTime @default(now())
+
+  @@unique([userId, nuqta])
+}
+
+// Bilim testi natijasi
+model TestResult {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nuqta     String
+  ball      Int
+  max       Int
+  javoblar  String // JSON
+  createdAt DateTime @default(now())
+
+  @@unique([userId, nuqta])
+}
+
+// Refleksiv esse
+model ReflectiveEssay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nuqta     String
+  matn      String
+  ball      Float?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, nuqta])
+}
+
+// Baholash. nuqta: kirish | oraliq | yakuniy; daraja: yuqori | orta | quyi
+model Assessment {
+  id             String  @id @default(cuid())
+  userId         String
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nuqta          String
+  motivatsionBall Float  @default(0)
+  kognitivBall   Float   @default(0)
+  faoliyatliBall Float   @default(0)
+  refleksivBall  Float   @default(0)
+  obyektivBall   Float   @default(0)
+  integralBall   Float   @default(0)
+  daraja         String?
+
+  @@unique([userId, nuqta])
+}
+
+// Kuzatuv kartasi (o'qituvchi to'ldiradi)
+model ObservationCard {
+  id           String   @id @default(cuid())
+  oqituvchiId  String
+  oqituvchi    User     @relation(fields: [oqituvchiId], references: [id], onDelete: Cascade)
+  lessonPlanId String?
+  lessonPlan   LessonPlan? @relation(fields: [lessonPlanId], references: [id], onDelete: SetNull)
+  pauzaTuri    String? // kartochka turi
+  otkazildi    Boolean  @default(false)
+  ishtirokDarajasi String? // yuqori | orta | past
+  izoh         String?
+  createdAt    DateTime @default(now())
+}
+
+// Mashg'ulot rejasi (o'qituvchi mashg'ulotga pauza/kartochka biriktiradi)
+model LessonPlan {
+  id          String   @id @default(cuid())
+  oqituvchiId String
+  oqituvchi   User     @relation(fields: [oqituvchiId], references: [id], onDelete: Cascade)
+  nomi        String // fan / mashg'ulot nomi
+  kun         String
+  boshlanish  String
+  tugash      String
+  guruhNomi   String?
+  cardIds     String   @default("[]") // JSON: biriktirilgan kartochka id'lari
+  pauzaIzoh   String?
+  createdAt   DateTime @default(now())
+
+  observations ObservationCard[]
+}
+
+// Nishon
+model Badge {
+  id     String @id @default(cuid())
+  kod    String @unique
+  nomi   String
+  shart  String
+  ikonka String
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  berilgan DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+}
+
+// «Faol hafta» kunlik 5 qoida belgilari
+model FaolHaftaKun {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sana     DateTime
+  qoidalar String   @default("[false,false,false,false,false]") // JSON bool[5]
+
+  @@unique([userId, sana])
+}
+
+// Chellenj. tur: guruh | shaxsiy
+model Challenge {
+  id         String   @id @default(cuid())
+  nomi       String
+  boshlanish DateTime
+  tugash     DateTime
+  tur        String   @default("guruh")
+  qoidalar   String // JSON massiv
+}
