@@ -3,10 +3,12 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useT } from "@/components/LangProvider";
 
 function KirishForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const { t } = useT();
   const demo = params.get("demo") === "1";
 
   const [email, setEmail] = useState(demo ? "talaba@demo.uz" : "");
@@ -48,32 +50,32 @@ function KirishForm() {
   return (
     <div className="w-full max-w-md">
       <div className="karta p-6 sm:p-8">
-        <h1 className="text-2xl font-bold">Tizimga kirish</h1>
-        <p className="mt-1 text-sm yumshoq">Raqamli faollik muhiti</p>
+        <h1 className="text-2xl font-bold">{t("auth.kirish.sarlavha")}</h1>
+        <p className="mt-1 text-sm yumshoq">{t("app.nom")}</p>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
           <div>
-            <label className="yorliq">Email</label>
+            <label className="yorliq">{t("auth.email")}</label>
             <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
           <div>
-            <label className="yorliq">Parol</label>
+            <label className="yorliq">{t("auth.parol")}</label>
             <input className="input" type="password" value={parol} onChange={(e) => setParol(e.target.value)} required autoComplete="current-password" />
           </div>
           {xato && <div className="rounded-xl bg-bad/10 px-3 py-2 text-sm text-bad">{xato}</div>}
           <button className="btn-asosiy w-full" disabled={yuk}>
-            {yuk ? "Kirilmoqda..." : "Kirish"}
+            {yuk ? t("auth.kirilmoqda") : t("common.kirish")}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm yumshoq">
-          Hisobingiz yo'qmi?{" "}
-          <Link href="/royxat" className="font-medium text-brand-600 hover:underline">Ro'yxatdan o'ting</Link>
+          {t("auth.hisobYoq")}{" "}
+          <Link href="/royxat" className="font-medium text-brand-600 hover:underline">{t("common.royxat")}</Link>
         </p>
       </div>
 
       <div className="karta mt-4 p-4">
-        <p className="text-sm font-medium">Demo hisoblar (parol: <code>demo1234</code>)</p>
+        <p className="text-sm font-medium">{t("auth.demoHisoblar")}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {demolar.map(([rol, em]) => (
             <button
@@ -88,7 +90,7 @@ function KirishForm() {
       </div>
 
       <p className="mt-4 text-center">
-        <Link href="/" className="text-sm yumshoq hover:underline">← Bosh sahifa</Link>
+        <Link href="/" className="text-sm yumshoq hover:underline">← {t("common.boshSahifa")}</Link>
       </p>
     </div>
   );

@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ROLLAR, NORMS, type Rol } from "@/lib/constants";
+import { NORMS, type Rol } from "@/lib/constants";
 import { haftaKunlari, sanaKey, isoHafta, qadamHolati, HOLAT_RANG, son } from "@/lib/utils";
+import { getT } from "@/lib/til-server";
 import YopiqHalqa from "@/components/YopiqHalqa";
 
 export default async function BoshqaruvPage() {
   const session = (await getSession())!;
   const role = session.role as Rol;
+  const { t } = await getT();
 
   if (role !== "talaba") {
-    return <BoshqaRol fio={session.fio} role={role} />;
+    return <BoshqaRol fio={session.fio} role={role} t={t} />;
   }
 
   // Talaba uchun holat ma'lumotlari
@@ -45,28 +47,28 @@ export default async function BoshqaruvPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Assalomu alaykum, {session.fio.split(" ")[0]}! 👋</h1>
-        <p className="yumshoq">Bugungi holatingiz va haftalik ko'rsatkichlaringiz</p>
+        <h1 className="text-2xl font-bold">{t("dash.salom", { ism: session.fio.split(" ")[0] })}</h1>
+        <p className="yumshoq">{t("dash.tavsif")}</p>
       </div>
 
       {/* Tezkor ko'rsatkichlar */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
-          sarlavha="Bu hafta o'rtacha qadam"
+          sarlavha={t("dash.ortachaQadam")}
           qiymat={son(ortachaQadam)}
-          izoh={`Me'yor: ${son(NORMS.QADAM_KUNLIK)}+`}
+          izoh={`${t("landing.meyor.qadamBirlik")}: ${son(NORMS.QADAM_KUNLIK)}+`}
           rang={HOLAT_RANG[holat].text}
         />
         <StatCard
-          sarlavha="Haftalik faol daqiqalar"
+          sarlavha={t("dash.faolDaqiqa")}
           qiymat={String(jamiFaolDaqiqa)}
-          izoh={`Me'yor: ${NORMS.FAOL_DAQIQA_HAFTALIK_MIN}+ daq.`}
+          izoh={`${NORMS.FAOL_DAQIQA_HAFTALIK_MIN}+ ${t("landing.meyor.otirishBirlik")}`}
           rang={jamiFaolDaqiqa >= NORMS.FAOL_DAQIQA_HAFTALIK_MIN ? "text-ok" : "text-warn"}
         />
         <StatCard
-          sarlavha="To'ldirilgan kunlar"
+          sarlavha={t("dash.toldirilgan")}
           qiymat={`${haftaEntries.length} / 7`}
-          izoh="Muntazamlik baholanadi"
+          izoh={t("dash.muntazam")}
           rang="text-brand-600"
         />
       </div>
@@ -75,18 +77,18 @@ export default async function BoshqaruvPage() {
       {!bugungi && (
         <div className="karta flex flex-col items-start gap-3 border-l-4 border-l-warn p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="font-semibold">Bugungi kundalikni to'ldiring</div>
-            <div className="text-sm yumshoq">Bir daqiqadan kam vaqt oladi — bu monitoring bo'g'ini</div>
+            <div className="font-semibold">{t("dash.kundalikChaqiruv")}</div>
+            <div className="text-sm yumshoq">{t("dash.kundalikChaqiruvMatn")}</div>
           </div>
-          <Link href="/kundalik" className="btn-asosiy">Kundalikni to'ldirish →</Link>
+          <Link href="/kundalik" className="btn-asosiy">{t("dash.kundalikTugma")}</Link>
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Yopiq halqa holati */}
         <div className="karta p-5">
-          <h2 className="font-bold">Yopiq halqa holati</h2>
-          <p className="text-sm yumshoq">Har bir bo'g'in bo'yicha bugungi holatingiz</p>
+          <h2 className="font-bold">{t("dash.halqaHolati")}</h2>
+          <p className="text-sm yumshoq">{t("dash.halqaTavsif")}</p>
           <div className="mt-4 space-y-2">
             {halqa.map((b) => (
               <Link key={b.nomi} href={b.href} className="flex items-center justify-between rounded-xl border p-3 transition hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: "var(--chegara)" }}>
@@ -104,7 +106,7 @@ export default async function BoshqaruvPage() {
 
         {/* Halqa sxemasi */}
         <div className="karta p-5">
-          <h2 className="font-bold">Tizim mantig'i</h2>
+          <h2 className="font-bold">{t("dash.tizimMantiq")}</h2>
           <div className="mt-2">
             <YopiqHalqa compact />
           </div>
@@ -125,36 +127,37 @@ function StatCard({ sarlavha, qiymat, izoh, rang }: { sarlavha: string; qiymat: 
 }
 
 // Talaba bo'lmagan rollar uchun boshqaruv
-function BoshqaRol({ fio, role }: { fio: string; role: Rol }) {
-  const havolalar: Record<string, { nomi: string; href: string }[]> = {
+function BoshqaRol({ fio, role, t }: { fio: string; role: Rol; t: (k: string, o?: Record<string, string | number>) => string }) {
+  const havolalar: Record<string, { kalit: string; href: string }[]> = {
     oqituvchi: [
-      { nomi: "O'qituvchi paneli", href: "/panel" },
-      { nomi: "Kartochkalar banki", href: "/kartochkalar" },
+      { kalit: "nav.panel", href: "/panel" },
+      { kalit: "nav.kartochka", href: "/kartochkalar" },
     ],
     tyutor: [
-      { nomi: "Guruh hisoboti", href: "/hisobot" },
-      { nomi: "Faollik uzilishlari", href: "/uzilishlar" },
-      { nomi: "Guruh baholashi", href: "/baholash" },
+      { kalit: "nav.hisobot", href: "/hisobot" },
+      { kalit: "nav.uzilishlar", href: "/uzilishlar" },
+      { kalit: "nav.baholash", href: "/baholash" },
     ],
     admin: [
-      { nomi: "Kafedra statistikasi", href: "/kafedra" },
-      { nomi: "O'quv moduli", href: "/modul" },
-      { nomi: "Guruh baholashi", href: "/baholash" },
-      { nomi: "Kartochkalar banki", href: "/kartochkalar" },
+      { kalit: "nav.kafedra", href: "/kafedra" },
+      { kalit: "nav.kontent", href: "/kontent" },
+      { kalit: "nav.modul", href: "/modul" },
+      { kalit: "nav.baholash", href: "/baholash" },
+      { kalit: "nav.kartochka", href: "/kartochkalar" },
     ],
   };
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Assalomu alaykum, {fio.split(" ")[0]}!</h1>
-        <p className="yumshoq">Rol: <b>{ROLLAR[role]}</b></p>
+        <h1 className="text-2xl font-bold">{t("dash.salom", { ism: fio.split(" ")[0] })}</h1>
+        <p className="yumshoq">{t("auth.rol")}: <b>{t(`role.${role}`)}</b></p>
       </div>
       <div className="karta p-5">
-        <h2 className="font-bold">Bo'limlaringiz</h2>
+        <h2 className="font-bold">{t("dash.bolimlaringiz")}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {(havolalar[role] ?? []).map((h) => (
             <Link key={h.href} href={h.href} className="flex items-center justify-between rounded-xl border p-4 transition hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: "var(--chegara)" }}>
-              <span className="font-medium">{h.nomi}</span>
+              <span className="font-medium">{t(h.kalit)}</span>
               <span className="text-brand-600">→</span>
             </Link>
           ))}

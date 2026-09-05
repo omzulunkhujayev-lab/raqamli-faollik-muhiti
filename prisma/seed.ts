@@ -319,6 +319,13 @@ async function main() {
     2: "https://www.youtube.com/watch?v=wUEl8KrMz14", // TED-Ed — Why sitting is bad for you
     8: "https://www.youtube.com/watch?v=dqONk48l5vY", // TED-Ed — What would happen if you didn't sleep?
   };
+  // Namuna «Rasmlar & Media» (admin qo'shishi mumkin bo'lgan mazmun namunasi)
+  const mavzuMedia: Record<number, { turi: string; url: string; izoh?: string }[]> = {
+    1: [
+      { turi: "rasm", url: "https://picsum.photos/seed/faollik/600/360", izoh: "Kunlik harakat namunasi" },
+      { turi: "havola", url: "https://www.who.int/news-room/fact-sheets/detail/physical-activity", izoh: "JSST — jismoniy faollik bo'yicha ma'lumotnoma" },
+    ],
+  };
   const mavzular = [
     {
       nomi: "Jismoniy faollik: tushuncha, turlari, me'yorlari va salomatlikka ta'siri",
@@ -398,6 +405,7 @@ async function main() {
         kontent: JSON.stringify({
           video: mavzuVideo[i + 1] ?? "",
           taqdimot: "",
+          media: mavzuMedia[i + 1] ?? [],
           kartochkaRaqamlar: mv.kartochkaRaqamlar,
           selfCheck: mv.selfCheck,
           topshiriq: mv.topshiriq,

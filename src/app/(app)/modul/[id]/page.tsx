@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { KARTOCHKA_TURLARI, ROLLAR } from "@/lib/constants";
 import { youtubeEmbed } from "@/lib/utils";
+import { useT } from "@/components/LangProvider";
 
 interface SelfCheck { savol: string; variantlar: string[]; togri: number }
-interface Kontent { video: string; taqdimot: string; selfCheck: SelfCheck[]; topshiriq: string }
+interface MediaItem { turi: "rasm" | "video" | "havola"; url: string; izoh?: string }
+interface Kontent { video: string; taqdimot: string; media?: MediaItem[]; selfCheck: SelfCheck[]; topshiriq: string }
 interface CardMini { id: string; raqam: number; nomi: string; turi: string; davomiylik: string }
 interface ForumItem { id: string; matn: string; createdAt: string; user: { fio: string; role: string } }
 interface Progress { korilgan: boolean; testBall: number; testMax: number; topshiriqMatn: string | null; topshiriqTopshirildi: boolean; bajarildi: boolean }
@@ -78,6 +80,9 @@ export default function MavzuPage() {
         )}
       </div>
 
+      {/* Rasmlar & Media */}
+      <MediaBolim media={k.media ?? []} />
+
       {/* Kartochkalar */}
       {cards.length > 0 && (
         <div className="karta p-5">
@@ -110,6 +115,35 @@ export default function MavzuPage() {
       {progress?.bajarildi && (
         <div className="karta border-l-4 border-l-ok p-4 text-ok">✓ Bu mavzu to'liq o'zlashtirildi (ma'ruza + test + topshiriq).</div>
       )}
+    </div>
+  );
+}
+
+function MediaBolim({ media }: { media: MediaItem[] }) {
+  const { t } = useT();
+  if (!media.length) return null;
+  return (
+    <div className="karta p-5">
+      <h2 className="font-bold">🖼️ {t("lms.media.sarlavha")}</h2>
+      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        {media.map((m, i) => (
+          <div key={i}>
+            {m.turi === "rasm" && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={m.url} alt={m.izoh ?? "rasm"} className="w-full rounded-xl border" style={{ borderColor: "var(--chegara)" }} loading="lazy" />
+            )}
+            {m.turi === "video" && (
+              <div className="aspect-video overflow-hidden rounded-xl">
+                <iframe src={youtubeEmbed(m.url)} className="h-full w-full" allowFullScreen title={m.izoh ?? "video"} referrerPolicy="strict-origin-when-cross-origin" />
+              </div>
+            )}
+            {m.turi === "havola" && (
+              <a href={m.url} target="_blank" rel="noreferrer" className="btn-ikkinchi w-full">🔗 {m.izoh || m.url}</a>
+            )}
+            {m.izoh && m.turi !== "havola" && <p className="mt-1 text-sm yumshoq">{m.izoh}</p>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

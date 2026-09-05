@@ -31,6 +31,12 @@ const selfCheckSchema = z.object({
   togri: z.coerce.number().int().min(0),
 });
 
+const mediaSchema = z.object({
+  turi: z.enum(["rasm", "video", "havola"]),
+  url: z.string(),
+  izoh: z.string().optional(),
+});
+
 const schema = z.object({
   id: z.string().min(1),
   nomi: z.string().min(1),
@@ -39,6 +45,7 @@ const schema = z.object({
   mustaqilSoat: z.coerce.number().int().min(0),
   video: z.string().optional(),
   taqdimot: z.string().optional(),
+  media: z.array(mediaSchema).default([]),
   kartochkaRaqamlar: z.array(z.coerce.number().int()),
   selfCheck: z.array(selfCheckSchema),
   topshiriq: z.string(),
@@ -61,6 +68,7 @@ export async function POST(req: Request) {
       kontent: JSON.stringify({
         video: d.video ?? "",
         taqdimot: d.taqdimot ?? "",
+        media: d.media.filter((m) => m.url.trim()),
         kartochkaRaqamlar: d.kartochkaRaqamlar,
         selfCheck: d.selfCheck.filter((s) => s.savol.trim()),
         topshiriq: d.topshiriq,

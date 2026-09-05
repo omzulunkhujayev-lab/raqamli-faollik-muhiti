@@ -131,7 +131,8 @@ function CardEditor({ card, onClose, onSaqlandi }: { card: Card; onClose: () => 
 
 /* ============ MAVZULAR ============ */
 interface SelfCheck { savol: string; variantlar: string[]; togri: number }
-interface Kontent { video: string; taqdimot: string; kartochkaRaqamlar: number[]; selfCheck: SelfCheck[]; topshiriq: string }
+interface MediaItem { turi: "rasm" | "video" | "havola"; url: string; izoh?: string }
+interface Kontent { video: string; taqdimot: string; media: MediaItem[]; kartochkaRaqamlar: number[]; selfCheck: SelfCheck[]; topshiriq: string }
 interface Topic { id: string; tartib: number; nomi: string; maruzaSoat: number; amaliySoat: number; mustaqilSoat: number; kontent: Kontent }
 
 function Mavzular() {
@@ -168,6 +169,7 @@ function TopicEditor({ topic, onClose, onSaqlandi }: { topic: Topic; onClose: ()
   const [k, setK] = useState<Kontent>({
     video: topic.kontent.video ?? "",
     taqdimot: topic.kontent.taqdimot ?? "",
+    media: topic.kontent.media ?? [],
     kartochkaRaqamlar: topic.kontent.kartochkaRaqamlar ?? [],
     selfCheck: topic.kontent.selfCheck ?? [],
     topshiriq: topic.kontent.topshiriq ?? "",
@@ -184,7 +186,7 @@ function TopicEditor({ topic, onClose, onSaqlandi }: { topic: Topic; onClose: ()
     setSaqlash(true); setXato("");
     const body = {
       id: f.id, nomi: f.nomi, maruzaSoat: f.maruzaSoat, amaliySoat: f.amaliySoat, mustaqilSoat: f.mustaqilSoat,
-      video: k.video, taqdimot: k.taqdimot,
+      video: k.video, taqdimot: k.taqdimot, media: k.media.filter((m) => m.url.trim()),
       kartochkaRaqamlar: raqamMatn.split(",").map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n > 0),
       selfCheck: k.selfCheck, topshiriq: k.topshiriq,
     };
@@ -212,6 +214,32 @@ function TopicEditor({ topic, onClose, onSaqlandi }: { topic: Topic; onClose: ()
         </div>
       )}
       <Field label="Taqdimot havolasi"><input className="input" placeholder="https://..." value={k.taqdimot} onChange={(e) => setK({ ...k, taqdimot: e.target.value })} /></Field>
+
+      {/* Rasmlar & Media */}
+      <div>
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-sm font-medium yumshoq">🖼️ Rasmlar & Media</span>
+          <button className="btn-ikkinchi !px-2.5 !py-1 text-sm" onClick={() => setK((x) => ({ ...x, media: [...x.media, { turi: "rasm", url: "", izoh: "" }] }))}>+ Media</button>
+        </div>
+        <div className="space-y-2">
+          {k.media.map((m, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-xl border p-2" style={{ borderColor: "var(--chegara)" }}>
+              <select className="input !w-28 !py-1.5" value={m.turi} onChange={(e) => setK((x) => ({ ...x, media: x.media.map((y, j) => (j === i ? { ...y, turi: e.target.value as MediaItem["turi"] } : y)) }))}>
+                <option value="rasm">Rasm</option>
+                <option value="video">Video</option>
+                <option value="havola">Havola</option>
+              </select>
+              <div className="flex-1 space-y-1">
+                <input className="input !py-1.5" placeholder="URL (https://...)" value={m.url} onChange={(e) => setK((x) => ({ ...x, media: x.media.map((y, j) => (j === i ? { ...y, url: e.target.value } : y)) }))} />
+                <input className="input !py-1.5" placeholder="Izoh (ixtiyoriy)" value={m.izoh ?? ""} onChange={(e) => setK((x) => ({ ...x, media: x.media.map((y, j) => (j === i ? { ...y, izoh: e.target.value } : y)) }))} />
+              </div>
+              <button onClick={() => setK((x) => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="text-bad">✕</button>
+            </div>
+          ))}
+          {k.media.length === 0 && <p className="text-xs yumshoq">Rasm, video yoki havola qo'shing.</p>}
+        </div>
+      </div>
+
       <Field label="Kartochka raqamlari (vergul bilan)"><input className="input" placeholder="1, 7, 10" value={raqamMatn} onChange={(e) => setRaqamMatn(e.target.value)} /></Field>
       <Field label="Amaliy topshiriq"><textarea className="input resize-none" rows={2} value={k.topshiriq} onChange={(e) => setK({ ...k, topshiriq: e.target.value })} /></Field>
 

@@ -3,35 +3,38 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
-import { ROLLAR, type Rol } from "@/lib/constants";
+import TilSwitcher from "./TilSwitcher";
+import { useT } from "./LangProvider";
+import { type Rol } from "@/lib/constants";
 
 interface NavItem {
   href: string;
-  nomi: string;
+  kalit: string;
   ikonka: string;
   rollar: Rol[];
 }
 
 const ITEMS: NavItem[] = [
-  { href: "/boshqaruv", nomi: "Boshqaruv", ikonka: "🏠", rollar: ["talaba", "oqituvchi", "tyutor", "admin"] },
-  { href: "/kundalik", nomi: "Kundalik", ikonka: "📝", rollar: ["talaba"] },
-  { href: "/profil", nomi: "Profil", ikonka: "📈", rollar: ["talaba"] },
-  { href: "/maqsad", nomi: "Maqsad", ikonka: "🎯", rollar: ["talaba"] },
-  { href: "/uzilishlar", nomi: "Uzilishlar", ikonka: "⏱️", rollar: ["talaba", "tyutor", "admin"] },
-  { href: "/modul", nomi: "Modul", ikonka: "📚", rollar: ["talaba", "admin"] },
-  { href: "/diagnostika", nomi: "Diagnostika", ikonka: "🧪", rollar: ["talaba"] },
-  { href: "/baholash", nomi: "Baholash", ikonka: "🏅", rollar: ["talaba", "tyutor", "admin"] },
-  { href: "/gamifikatsiya", nomi: "Rag'bat", ikonka: "🏆", rollar: ["talaba"] },
-  { href: "/panel", nomi: "Panel", ikonka: "📋", rollar: ["oqituvchi", "admin"] },
-  { href: "/hisobot", nomi: "Hisobot", ikonka: "📊", rollar: ["tyutor", "admin"] },
-  { href: "/kafedra", nomi: "Kafedra", ikonka: "🏛️", rollar: ["admin"] },
-  { href: "/kontent", nomi: "Kontent", ikonka: "✏️", rollar: ["admin"] },
-  { href: "/kartochkalar", nomi: "Kartochka", ikonka: "🃏", rollar: ["talaba", "oqituvchi", "tyutor", "admin"] },
+  { href: "/boshqaruv", kalit: "nav.boshqaruv", ikonka: "🏠", rollar: ["talaba", "oqituvchi", "tyutor", "admin"] },
+  { href: "/kundalik", kalit: "nav.kundalik", ikonka: "📝", rollar: ["talaba"] },
+  { href: "/profil", kalit: "nav.profil", ikonka: "📈", rollar: ["talaba"] },
+  { href: "/maqsad", kalit: "nav.maqsad", ikonka: "🎯", rollar: ["talaba"] },
+  { href: "/uzilishlar", kalit: "nav.uzilishlar", ikonka: "⏱️", rollar: ["talaba", "tyutor", "admin"] },
+  { href: "/modul", kalit: "nav.modul", ikonka: "📚", rollar: ["talaba", "admin"] },
+  { href: "/diagnostika", kalit: "nav.diagnostika", ikonka: "🧪", rollar: ["talaba"] },
+  { href: "/baholash", kalit: "nav.baholash", ikonka: "🏅", rollar: ["talaba", "tyutor", "admin"] },
+  { href: "/gamifikatsiya", kalit: "nav.ragbat", ikonka: "🏆", rollar: ["talaba"] },
+  { href: "/panel", kalit: "nav.panel", ikonka: "📋", rollar: ["oqituvchi", "admin"] },
+  { href: "/hisobot", kalit: "nav.hisobot", ikonka: "📊", rollar: ["tyutor", "admin"] },
+  { href: "/kafedra", kalit: "nav.kafedra", ikonka: "🏛️", rollar: ["admin"] },
+  { href: "/kontent", kalit: "nav.kontent", ikonka: "✏️", rollar: ["admin"] },
+  { href: "/kartochkalar", kalit: "nav.kartochka", ikonka: "🃏", rollar: ["talaba", "oqituvchi", "tyutor", "admin"] },
 ];
 
 export default function AppNav({ fio, role }: { fio: string; role: Rol }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useT();
   const items = ITEMS.filter((i) => i.rollar.includes(role));
 
   async function chiqish() {
@@ -51,12 +54,13 @@ export default function AppNav({ fio, role }: { fio: string; role: Rol }) {
           <span className="font-bold leading-tight">Raqamli faollik muhiti</span>
         </Link>
         <div className="flex items-center gap-2">
+          <TilSwitcher />
           <ThemeToggle />
           <div className="hidden text-right sm:block">
             <div className="text-sm font-medium leading-tight">{fio}</div>
-            <div className="text-xs yumshoq">{ROLLAR[role]}</div>
+            <div className="text-xs yumshoq">{t(`role.${role}`)}</div>
           </div>
-          <button onClick={chiqish} className="btn-ikkinchi !px-3 !py-2 text-sm" title="Chiqish">Chiqish</button>
+          <button onClick={chiqish} className="btn-ikkinchi !px-3 !py-2 text-sm" title={t("common.chiqish")}>{t("common.chiqish")}</button>
         </div>
       </div>
 
@@ -72,7 +76,7 @@ export default function AppNav({ fio, role }: { fio: string; role: Rol }) {
               }`}
             >
               <span>{i.ikonka}</span>
-              {i.nomi}
+              {t(i.kalit)}
             </Link>
           ))}
         </div>

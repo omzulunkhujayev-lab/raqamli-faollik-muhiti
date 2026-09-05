@@ -1,13 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { LangProvider } from "@/components/LangProvider";
+import { getTil } from "@/lib/til-server";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Raqamli faollik muhiti",
+  title: "Raqamli faollik muhiti PhD dissertatsiyasi",
   description:
-    "Pedagogika yo'nalishi talabalarining jismoniy faolligini monitoring qilish, rivojlantirish va baholash platformasi",
+    "Pedagogika yo'nalishi talabalarining jismoniy faolligini monitoring qilish, rivojlantirish va baholash platformasi — PhD dissertatsiya loyihasi",
 };
 
 export const viewport: Viewport = {
@@ -26,15 +28,18 @@ const themeScript = `
   } catch (e) {}
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const til = await getTil();
   return (
-    <html lang="uz" className={inter.variable} suppressHydrationWarning>
+    <html lang={til} className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <LangProvider initialTil={til}>{children}</LangProvider>
+      </body>
     </html>
   );
 }
