@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { NORMS } from "@/lib/constants";
 import { qadamHolati, otirishHolati, foiz, HOLAT_RANG, faolDaqiqaHolati, son } from "@/lib/utils";
+import { useT } from "@/components/LangProvider";
 
 interface Kun {
   kun: string; sana: string; qadam: number; faolDaqiqa: number;
@@ -19,6 +20,7 @@ interface Xulosa {
 }
 
 export default function ProfilPage() {
+  const { t } = useT();
   const [offset, setOffset] = useState(0);
   const [kunlik, setKunlik] = useState<Kun[]>([]);
   const [xulosa, setXulosa] = useState<Xulosa | null>(null);
@@ -43,42 +45,42 @@ export default function ProfilPage() {
     <div className="space-y-6 pb-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Haftalik profil</h1>
-          <p className="yumshoq">Teskari aloqa: ma'lumotlaringiz tushunarli shaklda</p>
+          <h1 className="text-2xl font-bold">{t("profil.sarlavha")}</h1>
+          <p className="yumshoq">{t("profil.tavsif")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-ikkinchi !px-3" onClick={() => setOffset((o) => o - 1)}>← O'tgan</button>
+          <button className="btn-ikkinchi !px-3" onClick={() => setOffset((o) => o - 1)}>{t("profil.otgan")}</button>
           <span className="min-w-[120px] text-center text-sm yumshoq">{oraliq.boshi} — {oraliq.oxiri}</span>
-          <button className="btn-ikkinchi !px-3" onClick={() => setOffset((o) => Math.min(0, o + 1))} disabled={offset >= 0}>Keyingi →</button>
+          <button className="btn-ikkinchi !px-3" onClick={() => setOffset((o) => Math.min(0, o + 1))} disabled={offset >= 0}>{t("profil.keyingi")}</button>
         </div>
       </div>
 
       {yuk || !xulosa ? (
-        <div className="yumshoq">Yuklanmoqda...</div>
+        <div className="yumshoq">{t("common.yuklanmoqda")}</div>
       ) : xulosa.toldirilganKun === 0 ? (
         <div className="karta p-8 text-center">
-          <p className="yumshoq">Bu hafta uchun ma'lumot yo'q.</p>
-          <Link href="/kundalik" className="btn-asosiy mt-4">Kundalikni to'ldirish →</Link>
+          <p className="yumshoq">{t("profil.malumotYoq")}</p>
+          <Link href="/kundalik" className="btn-asosiy mt-4">{t("dash.kundalikTugma")}</Link>
         </div>
       ) : (
         <>
           {/* Me'yorga nisbatan indikatorlar */}
           <div className="grid gap-4 sm:grid-cols-3">
             <Indikator
-              sarlavha="O'rtacha kunlik qadam"
+              sarlavha={t("profil.ortachaQadam")}
               qiymat={son(xulosa.ortachaQadam)}
               foiz={foiz(xulosa.ortachaQadam, NORMS.QADAM_KUNLIK)}
               holat={qadamHolati(xulosa.ortachaQadam)}
             />
             <Indikator
-              sarlavha="Haftalik faol daqiqalar"
-              qiymat={`${xulosa.jamiFaolDaqiqa} daq.`}
+              sarlavha={t("profil.haftalikFaol")}
+              qiymat={`${xulosa.jamiFaolDaqiqa} ${t("unit.daq")}`}
               foiz={foiz(xulosa.jamiFaolDaqiqa, NORMS.FAOL_DAQIQA_HAFTALIK_MIN)}
               holat={faolDaqiqaHolati(xulosa.jamiFaolDaqiqa)}
             />
             <Indikator
-              sarlavha="Eng uzun o'tirish"
-              qiymat={`${xulosa.engUzunOtirish} daq.`}
+              sarlavha={t("profil.engUzun")}
+              qiymat={`${xulosa.engUzunOtirish} ${t("unit.daq")}`}
               foiz={Math.min(100, foiz(xulosa.engUzunOtirish, NORMS.OTIRISH_CHEGARA))}
               holat={otirishHolati(xulosa.engUzunOtirish)}
               teskari
@@ -87,8 +89,8 @@ export default function ProfilPage() {
 
           {/* Qadamlar dinamikasi */}
           <div className="karta p-5">
-            <h2 className="font-bold">Qadamlar dinamikasi</h2>
-            <p className="text-sm yumshoq">Ustunlar me'yorga nisbatan ranglangan (yashil/sariq/qizil)</p>
+            <h2 className="font-bold">{t("profil.qadamDinamika")}</h2>
+            <p className="text-sm yumshoq">{t("profil.qadamDinamikaTavsif")}</p>
             <div className="mt-4 h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={kunlik} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
@@ -96,7 +98,7 @@ export default function ProfilPage() {
                   <XAxis dataKey="kun" tick={tick} axisLine={false} tickLine={false} />
                   <YAxis tick={tick} axisLine={false} tickLine={false} />
                   <Tooltip content={<TipQadam />} cursor={{ fill: "var(--chegara)", opacity: 0.3 }} />
-                  <ReferenceLine y={NORMS.QADAM_KUNLIK} stroke="#16a34a" strokeDasharray="5 5" label={{ value: "me'yor", position: "right", fontSize: 10, fill: "#16a34a" }} />
+                  <ReferenceLine y={NORMS.QADAM_KUNLIK} stroke="#16a34a" strokeDasharray="5 5" label={{ value: t("chart.meyor"), position: "right", fontSize: 10, fill: "#16a34a" }} />
                   <Bar dataKey="qadam" radius={[6, 6, 0, 0]}>
                     {kunlik.map((k, i) => (
                       <Cell key={i} fill={HOLAT_RANG[qadamHolati(k.qadam)].hex} opacity={k.bor ? 1 : 0.25} />
@@ -110,7 +112,7 @@ export default function ProfilPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Faol daqiqalar */}
             <div className="karta p-5">
-              <h2 className="font-bold">Faol daqiqalar</h2>
+              <h2 className="font-bold">{t("profil.faolDaqiqa")}</h2>
               <div className="mt-4 h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={kunlik} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
@@ -118,7 +120,7 @@ export default function ProfilPage() {
                     <XAxis dataKey="kun" tick={tick} axisLine={false} tickLine={false} />
                     <YAxis tick={tick} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ stroke: "var(--chegara)" }} contentStyle={tipStyle} />
-                    <Line type="monotone" dataKey="faolDaqiqa" name="Faol daq." stroke="#0d9488" strokeWidth={3} dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="faolDaqiqa" name={t("chart.faolDaq")} stroke="#0d9488" strokeWidth={3} dot={{ r: 4 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -126,8 +128,8 @@ export default function ProfilPage() {
 
             {/* Uzluksiz o'tirish */}
             <div className="karta p-5">
-              <h2 className="font-bold">Uzluksiz o'tirish (eng uzun)</h2>
-              <p className="text-sm yumshoq">Qizil chiziqdan yuqorisi — faollik uzilishi xavfi</p>
+              <h2 className="font-bold">{t("profil.otirishSarlavha")}</h2>
+              <p className="text-sm yumshoq">{t("profil.otirishTavsif")}</p>
               <div className="mt-4 h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={kunlik} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
@@ -136,7 +138,7 @@ export default function ProfilPage() {
                     <YAxis tick={tick} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ fill: "var(--chegara)", opacity: 0.3 }} contentStyle={tipStyle} />
                     <ReferenceLine y={NORMS.OTIRISH_CHEGARA} stroke="#dc2626" strokeDasharray="5 5" label={{ value: "60 daq.", position: "right", fontSize: 10, fill: "#dc2626" }} />
-                    <Bar dataKey="engUzunOtirish" name="O'tirish (daq.)" radius={[6, 6, 0, 0]}>
+                    <Bar dataKey="engUzunOtirish" name={t("chart.otirish")} radius={[6, 6, 0, 0]}>
                       {kunlik.map((k, i) => (
                         <Cell key={i} fill={HOLAT_RANG[otirishHolati(k.engUzunOtirish)].hex} opacity={k.bor ? 1 : 0.25} />
                       ))}
@@ -164,13 +166,14 @@ const tipStyle = {
 };
 
 function TipQadam({ active, payload }: { active?: boolean; payload?: { payload: Kun }[] }) {
+  const { t } = useT();
   if (!active || !payload?.length) return null;
   const k = payload[0].payload;
   return (
     <div style={tipStyle} className="p-2">
       <div className="font-semibold">{k.kun}</div>
-      <div>{son(k.qadam)} qadam</div>
-      {!k.bor && <div className="text-xs yumshoq">Ma'lumot yo'q</div>}
+      <div>{son(k.qadam)} {t("profil.qadamBirlik")}</div>
+      {!k.bor && <div className="text-xs yumshoq">{t("profil.malumotYoqTip")}</div>}
     </div>
   );
 }
@@ -178,6 +181,7 @@ function TipQadam({ active, payload }: { active?: boolean; payload?: { payload: 
 function Indikator({ sarlavha, qiymat, foiz, holat, teskari }: {
   sarlavha: string; qiymat: string; foiz: number; holat: "ok" | "warn" | "bad"; teskari?: boolean;
 }) {
+  const { t } = useT();
   const r = HOLAT_RANG[holat];
   return (
     <div className={`karta border-l-4 p-5 ${r.border}`}>
@@ -187,7 +191,7 @@ function Indikator({ sarlavha, qiymat, foiz, holat, teskari }: {
         <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, foiz)}%`, backgroundColor: r.hex }} />
       </div>
       <div className={`mt-1 text-xs ${r.text}`}>
-        Me'yorga nisbatan {foiz}%{teskari ? " (kam bo'lgani ma'qul)" : ""}
+        {t("profil.meyorNisbatan", { foiz })}{teskari ? t("profil.kamMaqul") : ""}
       </div>
     </div>
   );
@@ -195,6 +199,7 @@ function Indikator({ sarlavha, qiymat, foiz, holat, teskari }: {
 
 // 4.3 — hafta yakunidagi majburiy tahlil savollari
 function HaftalikTahlil({ offset }: { offset: number }) {
+  const { t } = useT();
   const [j, setJ] = useState({ engFaolKun: "", engPastKun: "", uzunOtirishVaqt: "", keyingiMaqsad: "" });
   const [saqlandi, setSaqlandi] = useState(false);
   const [saqlash, setSaqlash] = useState(false);
@@ -227,16 +232,16 @@ function HaftalikTahlil({ offset }: { offset: number }) {
   }
 
   const savollar: [keyof typeof j, string][] = [
-    ["engFaolKun", "Qaysi kun eng faol bo'ldi va nima uchun?"],
-    ["engPastKun", "Qaysi kun eng past ko'rsatkich qayd etildi, sababi nimada?"],
-    ["uzunOtirishVaqt", "Qaysi vaqt oralig'ida uzluksiz o'tirish eng uzun bo'ldi?"],
-    ["keyingiMaqsad", "Kelgusi haftaga qanday bitta aniq maqsad qo'yaman?"],
+    ["engFaolKun", t("tahlil.q1")],
+    ["engPastKun", t("tahlil.q2")],
+    ["uzunOtirishVaqt", t("tahlil.q3")],
+    ["keyingiMaqsad", t("tahlil.q4")],
   ];
 
   return (
     <div className="karta border-l-4 border-l-brand-500 p-5">
-      <h2 className="font-bold">Hafta yakunidagi tahlil (refleksiya)</h2>
-      <p className="text-sm yumshoq">Bu bo'g'in yopiq halqani yopadi — javoblaringiz keyingi maqsad uchun asos bo'ladi</p>
+      <h2 className="font-bold">{t("tahlil.sarlavha")}</h2>
+      <p className="text-sm yumshoq">{t("tahlil.tavsif")}</p>
       <div className="mt-4 space-y-4">
         {savollar.map(([k, savol]) => (
           <div key={k}>
@@ -249,10 +254,10 @@ function HaftalikTahlil({ offset }: { offset: number }) {
         ))}
       </div>
       <div className="mt-4 flex items-center gap-3">
-        {saqlandi && <span className="text-sm text-ok">✓ Saqlandi</span>}
-        <Link href="/maqsad" className="btn-ikkinchi ml-auto">Maqsad qo'yishga o'tish →</Link>
+        {saqlandi && <span className="text-sm text-ok">✓ {t("common.saqlandi")}</span>}
+        <Link href="/maqsad" className="btn-ikkinchi ml-auto">{t("tahlil.maqsadga")}</Link>
         <button onClick={saqla} disabled={saqlash} className="btn-asosiy">
-          {saqlash ? "Saqlanmoqda..." : "Tahlilni saqlash"}
+          {saqlash ? t("common.saqlanmoqda") : t("tahlil.saqla")}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { KARTOCHKA_TURLARI, JOY_TURLARI } from "@/lib/constants";
+import { useT } from "@/components/LangProvider";
 
 interface Card {
   id: string; raqam: number; nomi: string; turi: string; davomiylik: string;
@@ -16,6 +17,7 @@ const TUR_RANG: Record<string, string> = {
 };
 
 export default function KartochkalarPage() {
+  const { t } = useT();
   const [cards, setCards] = useState<Card[]>([]);
   const [yuk, setYuk] = useState(true);
   const [tur, setTur] = useState<string>("");
@@ -55,34 +57,34 @@ export default function KartochkalarPage() {
     });
   }, [cards, tur, joy, qidiruv, faqatSevimli]);
 
-  if (yuk) return <div className="yumshoq">Yuklanmoqda...</div>;
+  if (yuk) return <div className="yumshoq">{t("common.yuklanmoqda")}</div>;
 
   return (
     <div className="space-y-5 pb-6">
       <div>
-        <h1 className="text-2xl font-bold">Faollik kartochkalari banki</h1>
-        <p className="yumshoq">Mikrofaollik pauzalari uchun tayyor metodik kartochkalar</p>
+        <h1 className="text-2xl font-bold">{t("kart.sarlavha")}</h1>
+        <p className="yumshoq">{t("kart.tavsif")}</p>
       </div>
 
       {/* Filtrlar */}
       <div className="karta space-y-3 p-4">
-        <input className="input" placeholder="🔍 Nomi yoki fan bo'yicha qidirish..." value={qidiruv} onChange={(e) => setQidiruv(e.target.value)} />
+        <input className="input" placeholder={t("kart.qidiruv")} value={qidiruv} onChange={(e) => setQidiruv(e.target.value)} />
         <div className="flex flex-wrap gap-2">
-          <Chip faol={tur === ""} onClick={() => setTur("")}>Barcha turlar</Chip>
-          {Object.entries(KARTOCHKA_TURLARI).map(([k, v]) => (
-            <Chip key={k} faol={tur === k} onClick={() => setTur(k)}>{v.nomi}</Chip>
+          <Chip faol={tur === ""} onClick={() => setTur("")}>{t("kart.barchaTur")}</Chip>
+          {Object.keys(KARTOCHKA_TURLARI).map((k) => (
+            <Chip key={k} faol={tur === k} onClick={() => setTur(k)}>{t(`card.turi.${k}`)}</Chip>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Chip faol={joy === ""} onClick={() => setJoy("")}>Barcha joylar</Chip>
-          {Object.entries(JOY_TURLARI).map(([k, v]) => (
-            <Chip key={k} faol={joy === k} onClick={() => setJoy(k)}>{v}</Chip>
+          <Chip faol={joy === ""} onClick={() => setJoy("")}>{t("kart.barchaJoy")}</Chip>
+          {Object.keys(JOY_TURLARI).map((k) => (
+            <Chip key={k} faol={joy === k} onClick={() => setJoy(k)}>{t(`card.joy.${k}`)}</Chip>
           ))}
-          <Chip faol={faqatSevimli} onClick={() => setFaqatSevimli((s) => !s)}>⭐ Sevimlilar</Chip>
+          <Chip faol={faqatSevimli} onClick={() => setFaqatSevimli((s) => !s)}>{t("kart.sevimlilar")}</Chip>
         </div>
       </div>
 
-      <div className="text-sm yumshoq">{filtered.length} ta kartochka</div>
+      <div className="text-sm yumshoq">{t("kart.soni", { n: filtered.length })}</div>
 
       {/* Kartochkalar to'ri */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -90,7 +92,7 @@ export default function KartochkalarPage() {
           <button key={c.id} onClick={() => setTanlangan(c)} className="karta p-4 text-left transition hover:shadow-md">
             <div className="flex items-start justify-between gap-2">
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TUR_RANG[c.turi]}`}>
-                {KARTOCHKA_TURLARI[c.turi as keyof typeof KARTOCHKA_TURLARI]?.nomi}
+                {t(`card.turi.${c.turi}`)}
               </span>
               <span onClick={(e) => toggleSevimli(c.id, e)} className="text-xl leading-none" role="button" aria-label="Sevimli">
                 {c.sevimli ? "⭐" : "☆"}
@@ -99,14 +101,14 @@ export default function KartochkalarPage() {
             <h3 className="mt-2 font-semibold">№{c.raqam}. {c.nomi}</h3>
             <div className="mt-2 flex flex-wrap gap-1.5 text-xs yumshoq">
               <span className="rounded-md border px-2 py-0.5" style={{ borderColor: "var(--chegara)" }}>⏱ {c.davomiylik}</span>
-              <span className="rounded-md border px-2 py-0.5" style={{ borderColor: "var(--chegara)" }}>📍 {JOY_TURLARI[c.joyTuri as keyof typeof JOY_TURLARI]}</span>
+              <span className="rounded-md border px-2 py-0.5" style={{ borderColor: "var(--chegara)" }}>📍 {t(`card.joy.${c.joyTuri}`)}</span>
             </div>
           </button>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <div className="karta p-8 text-center yumshoq">Filtrga mos kartochka topilmadi.</div>
+        <div className="karta p-8 text-center yumshoq">{t("kart.topilmadi")}</div>
       )}
 
       {tanlangan && <Detal card={tanlangan} onClose={() => setTanlangan(null)} onFav={() => toggleSevimli(tanlangan.id)} />}
@@ -129,6 +131,7 @@ function Chip({ faol, onClick, children }: { faol: boolean; onClick: () => void;
 }
 
 function Detal({ card, onClose, onFav }: { card: Card; onClose: () => void; onFav: () => void }) {
+  const { t } = useT();
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div
@@ -138,7 +141,7 @@ function Detal({ card, onClose, onFav }: { card: Card; onClose: () => void; onFa
       >
         <div className="sticky top-0 flex items-center justify-between border-b p-4 print:hidden" style={{ borderColor: "var(--chegara)", backgroundColor: "var(--sirt)" }}>
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TUR_RANG[card.turi]}`}>
-            {KARTOCHKA_TURLARI[card.turi as keyof typeof KARTOCHKA_TURLARI]?.nomi}
+            {t(`card.turi.${card.turi}`)}
           </span>
           <div className="flex items-center gap-2">
             <button onClick={onFav} className="btn-ikkinchi !px-2.5 !py-1.5">{card.sevimli ? "⭐" : "☆"}</button>
@@ -151,12 +154,12 @@ function Detal({ card, onClose, onFav }: { card: Card; onClose: () => void; onFa
           <h2 className="text-xl font-bold">№{card.raqam}. {card.nomi}</h2>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <Info yorliq="Davomiyligi" qiymat={card.davomiylik} />
-            <Info yorliq="Joy va jihoz" qiymat={card.joyJihoz} />
+            <Info yorliq={t("kart.davomiylik")} qiymat={card.davomiylik} />
+            <Info yorliq={t("kart.joyJihoz")} qiymat={card.joyJihoz} />
           </div>
 
           <div>
-            <h3 className="font-semibold">O'tkazish algoritmi</h3>
+            <h3 className="font-semibold">{t("kart.algoritm")}</h3>
             <ol className="mt-2 space-y-2">
               {card.algoritm.map((qadam, i) => (
                 <li key={i} className="flex gap-3">
@@ -168,19 +171,19 @@ function Detal({ card, onClose, onFav }: { card: Card; onClose: () => void; onFa
           </div>
 
           <div className="rounded-xl bg-brand-50 p-3 dark:bg-brand-900/20">
-            <h3 className="text-sm font-semibold">📌 Metodik eslatma</h3>
+            <h3 className="text-sm font-semibold">{t("kart.metodik")}</h3>
             <p className="mt-1 text-sm yumshoq">{card.metodikEslatma}</p>
           </div>
 
           {card.moslashtirilganVariant && (
             <div className="rounded-xl border border-warn/40 bg-warn/10 p-3">
-              <h3 className="text-sm font-semibold">♿ Moslashtirilgan variant (sog'liq cheklovi uchun)</h3>
+              <h3 className="text-sm font-semibold">{t("kart.moslashtirilgan")}</h3>
               <p className="mt-1 text-sm yumshoq">{card.moslashtirilganVariant}</p>
             </div>
           )}
 
           <div>
-            <h3 className="text-sm font-semibold">Mos fanlar</h3>
+            <h3 className="text-sm font-semibold">{t("kart.mosFanlar")}</h3>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {card.mosFanlar.map((f) => (
                 <span key={f} className="rounded-md border px-2 py-0.5 text-xs" style={{ borderColor: "var(--chegara)" }}>{f}</span>

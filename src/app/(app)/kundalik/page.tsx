@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { NORMS } from "@/lib/constants";
 import { qadamHolati, otirishHolati, uyquHolati, HOLAT_RANG, sanaUzbek, son, type Holat } from "@/lib/utils";
+import { useT } from "@/components/LangProvider";
 
 const KAYFIYAT = ["😞", "😐", "🙂", "😊", "🤩"];
 
@@ -24,6 +25,7 @@ const BOSHLANGICH: FormState = {
 };
 
 export default function KundalikPage() {
+  const { t } = useT();
   const [f, setF] = useState<FormState>(BOSHLANGICH);
   const [yuk, setYuk] = useState(true);
   const [saqlash, setSaqlash] = useState(false);
@@ -112,51 +114,51 @@ export default function KundalikPage() {
     }
   }
 
-  if (yuk) return <div className="yumshoq">Yuklanmoqda...</div>;
+  if (yuk) return <div className="yumshoq">{t("common.yuklanmoqda")}</div>;
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 pb-24">
       <div>
-        <h1 className="text-2xl font-bold">Faollik kundaligi</h1>
+        <h1 className="text-2xl font-bold">{t("kundalik.sarlavha")}</h1>
         <p className="yumshoq">{bugun}</p>
         {mavjud && (
           <div className="mt-2 inline-block rounded-full bg-ok/10 px-3 py-1 text-sm text-ok">
-            ✓ Bugun to'ldirilgan — yangilashingiz mumkin
+            ✓ {t("kundalik.bugunToldirilgan")}
           </div>
         )}
       </div>
 
       {/* Qadamlar */}
       <Slayder
-        sarlavha="Kunlik qadamlar soni"
+        sarlavha={t("kundalik.qadam")}
         qiymat={f.qadam}
         min={0} max={20000} step={500}
         onChange={(v) => set("qadam", v)}
         format={(v) => son(v)}
         holat={qadamHolati(f.qadam)}
-        meyor={`Me'yor: ${son(NORMS.QADAM_KUNLIK)}+`}
+        meyor={`${t("common.meyor")}: ${son(NORMS.QADAM_KUNLIK)}+`}
       />
 
       {/* Faol daqiqalar */}
       <Slayder
-        sarlavha="Faol daqiqalar (o'rtacha jadallik)"
+        sarlavha={t("kundalik.faolDaqiqa")}
         qiymat={f.faolDaqiqa}
         min={0} max={180} step={5}
         onChange={(v) => set("faolDaqiqa", v)}
-        format={(v) => `${v} daq.`}
+        format={(v) => `${v} ${t("unit.daq")}`}
         holat={f.faolDaqiqa >= 21 ? "ok" : f.faolDaqiqa >= 10 ? "warn" : "bad"}
-        meyor="Haftasiga 150+ daq."
+        meyor={t("kundalik.faolMeyor")}
       />
 
       {/* Eng uzun uzluksiz o'tirish */}
       <Slayder
-        sarlavha="Eng uzun uzluksiz o'tirish"
+        sarlavha={t("kundalik.otirish")}
         qiymat={f.engUzunOtirish}
         min={0} max={180} step={5}
         onChange={(v) => set("engUzunOtirish", v)}
-        format={(v) => `${v} daq.`}
+        format={(v) => `${v} ${t("unit.daq")}`}
         holat={otirishHolati(f.engUzunOtirish)}
-        meyor={`${NORMS.OTIRISH_CHEGARA} daqiqadan kam bo'lsin`}
+        meyor={t("kundalik.otirishMeyor", { n: NORMS.OTIRISH_CHEGARA })}
         teskari
       />
 
@@ -164,8 +166,8 @@ export default function KundalikPage() {
       <div className="karta p-5">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-semibold">Mikrofaollik pauzalari soni</div>
-            <div className="text-sm yumshoq">Har 45–60 daqiqada bittadan</div>
+            <div className="font-semibold">{t("kundalik.pauza")}</div>
+            <div className="text-sm yumshoq">{t("kundalik.pauzaTavsif")}</div>
           </div>
           <div className="flex items-center gap-3">
             <button className="btn-ikkinchi !h-12 !w-12 !rounded-full !p-0 text-2xl" onClick={() => set("pauzaSoni", Math.max(0, f.pauzaSoni - 1))} aria-label="Kamaytirish">−</button>
@@ -177,27 +179,27 @@ export default function KundalikPage() {
 
       {/* Uyqu */}
       <Slayder
-        sarlavha="Uyqu davomiyligi"
+        sarlavha={t("kundalik.uyqu")}
         qiymat={f.uyquSoat}
         min={3} max={12} step={0.5}
         onChange={(v) => set("uyquSoat", v)}
-        format={(v) => `${v} soat`}
+        format={(v) => `${v} ${t("unit.soat")}`}
         holat={uyquHolati(f.uyquSoat)}
-        meyor="7–9 soat"
+        meyor={t("kundalik.uyquMeyor")}
       />
 
       {/* Ekran vaqti */}
       <Slayder
-        sarlavha="Ekran vaqti"
+        sarlavha={t("kundalik.ekran")}
         qiymat={f.ekranSoat}
         min={0} max={16} step={0.5}
         onChange={(v) => set("ekranSoat", v)}
-        format={(v) => `${v} soat`}
+        format={(v) => `${v} ${t("unit.soat")}`}
       />
 
       {/* Kayfiyat */}
       <div className="karta p-5">
-        <div className="font-semibold">Kayfiyat va ish qobiliyati</div>
+        <div className="font-semibold">{t("kundalik.kayfiyat")}</div>
         <div className="mt-3 flex justify-between gap-2">
           {KAYFIYAT.map((emoji, i) => (
             <button
@@ -217,27 +219,27 @@ export default function KundalikPage() {
 
       {/* Refleksiya */}
       <div className="karta p-5">
-        <div className="font-semibold">Kunlik refleksiya <span className="yumshoq font-normal">(ixtiyoriy)</span></div>
+        <div className="font-semibold">{t("kundalik.refleksiya")} <span className="yumshoq font-normal">{t("kundalik.ixtiyoriy")}</span></div>
         <textarea
           className="input mt-2 resize-none"
           rows={2}
           maxLength={1000}
-          placeholder="1–2 jumla: bugun nima ta'sir qildi?"
+          placeholder={t("kundalik.refleksiyaPlace")}
           value={f.refleksiyaMatn}
           onChange={(e) => set("refleksiyaMatn", e.target.value)}
         />
       </div>
 
       <p className="text-center text-sm yumshoq">
-        Ma'lumot bir hafta ichida <Link href="/profil" className="text-brand-600 hover:underline">haftalik profil</Link> orqali sizga qaytariladi (teskari aloqa).
+        <Link href="/profil" className="text-brand-600 hover:underline">{t("kundalik.teskari")}</Link>
       </p>
 
       {/* Saqlash paneli (mobil uchun pastda yopishgan) */}
       <div className="fixed inset-x-0 bottom-16 z-20 border-t p-3 md:static md:border-0 md:p-0" style={{ borderColor: "var(--chegara)", backgroundColor: "var(--sirt)" }}>
         <div className="mx-auto flex max-w-2xl items-center gap-3">
-          {saqlandi && <span className="text-sm text-ok">✓ Saqlandi</span>}
+          {saqlandi && <span className="text-sm text-ok">✓ {t("common.saqlandi")}</span>}
           <button onClick={saqla} disabled={saqlash} className="btn-asosiy ml-auto w-full md:w-auto">
-            {saqlash ? "Saqlanmoqda..." : mavjud ? "Yangilash" : "Saqlash"}
+            {saqlash ? t("common.saqlanmoqda") : mavjud ? t("common.yangilash") : t("common.saqlash")}
           </button>
         </div>
       </div>
