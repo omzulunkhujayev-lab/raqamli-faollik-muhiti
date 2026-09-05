@@ -217,4 +217,27 @@ export const uz: Record<string, string> = {
   "tahlil.q4": "Kelgusi haftaga qanday bitta aniq maqsad qo'yaman?",
   "tahlil.maqsadga": "Maqsad qo'yishga o'tish →",
   "tahlil.saqla": "Tahlilni saqlash",
+
+  // Faol hafta qoidalari
+  "faolHafta.1": "Kuniga 6 000+ qadam",
+  "faolHafta.2": "Har 45 daqiqada pauza",
+  "faolHafta.3": "Liftdan voz kechish",
+  "faolHafta.4": "Kuniga 30 daqiqa ochiq havo",
+  "faolHafta.5": "Yotishdan 1 soat oldin ekranni qo'yish",
+
+  // Gamifikatsiya (Rag'bat)
+  "gam.sarlavha": "Rag'bat",
+  "gam.tavsif": "Ijtimoiy e'tirof — moddiy rag'bat emas. Musobaqa 2–3 hafta bilan cheklangan.",
+  "gam.tugadi": "«{nomi}» chellenji yakunlandi 🎉",
+  "gam.tugadiMatn": "Tashqi rag'batga qaramaslik uchun endi shaxsiy maqsad va refleksiyaga o'tamiz.",
+  "gam.shaxsiyMaqsad": "Shaxsiy maqsad qo'yish →",
+  "gam.refleksiyaTugma": "Refleksiya →",
+  "gam.yakunlandi": "(yakunlandi)",
+  "gam.guruhTavsif": "Guruhlarning o'rtacha kunlik qadamlar soni (individual emas)",
+  "gam.meningGuruhim": "(mening guruhim)",
+  "gam.faolHafta": "🌿 Faol hafta — bugungi 5 qoida",
+  "gam.faolHaftaTavsif": "Har kuni bajarilgan qoidalarni belgilang",
+  "gam.bugun": "Bugun: {n} / 5 bajarildi",
+  "gam.nishonlar": "🏅 Nishonlar",
+  "gam.qoidalar": "Gamifikatsiya qoidalari: musobaqa 2–3 hafta bilan cheklanadi · natijalar shaxsiy va guruh dinamikasi bo'yicha baholanadi (mutlaq emas) · rag'bat ijtimoiy e'tirof shaklida · chellenj tugagach tizim sizni shaxsiy maqsad va refleksiya rejimiga o'tkazadi.",
 };
